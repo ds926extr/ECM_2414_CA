@@ -16,6 +16,26 @@ public class Player {
     }
 
     //initiates an empty array list using the Card objects, later used to store a player's hand
-    ArrayList<Card> currentHand = new ArrayList<Card>();
+    private final ArrayList<Card> currentHand = new ArrayList<Card>(); //private final to ensure the hand is unchanged throughout the game
+
+    public void receiveCard(Card card) {
+        currentHand.add(card);
+    }
+
+    public boolean hasFullHand() {
+        if (currentHand.size() == 4) {
+            System.out.println("The hand is full, continue the game");
+            return true;
+        } else {
+            System.out.println("Incorrect number of cards");
+            return false;
+        }
+    }
+
+    public boolean sameValue() {
+        if 
+    }
+
+
 
 }
