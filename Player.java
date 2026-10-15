@@ -1,22 +1,30 @@
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Player {
-    //obtains the player number
-    //final private as this variable should not change once the game starts
+    
+    public class Player implements Runnable {
     final private int playerNumber;
+    private CardDeck sourceDeck;
+    private CardDeck destinationDeck;
+    final private AtomicBoolean gameIsOver;
 
-    //sets the current player number as the parameter used throughout the game
-    public Player(int playerNumber) {
+    //initiates an empty array list using the Card objects, later used to store a player's hand
+    private final ArrayList<Card> currentHand = new ArrayList<Card>(); //private final to ensure the hand is unchanged throughout the game
+
+    //ensures the assigned player number, source and destination decks, and game over message are remained unchanged during the game
+    public Player(int playerNumber, CardDeck sourceDeck,
+                   CardDeck destinationDeck, AtomicBoolean gameIsOver) {
         this.playerNumber = playerNumber;
+        this.sourceDeck = sourceDeck;
+        this.destinationDeck = destinationDeck;
+        this.gameisOver = gameIsOver;
     }
 
     //retrieves the private player number when required during the game is executed
     public int getPlayerNumber() {
         return playerNumber;
     }
-
-    //initiates an empty array list using the Card objects, later used to store a player's hand
-    private final ArrayList<Card> currentHand = new ArrayList<Card>(); //private final to ensure the hand is unchanged throughout the game
 
     //this method adds cards onto the empty array list
     public void receiveCard(Card card) {
@@ -46,6 +54,23 @@ public class Player {
         } return true;
     }
 
+    public boolean fourCardsMatch() {
+        for (int card = 0; card < currentHand.size(); card++) {
+            int value = currentHand.get(card).getValue();
+            int count = 0
+
+            for (int i = 0; i <currentHand.size(); i++) {
+                if (currentHand.get(i).getValue() == value) {
+                    count++;
+                }
+            }
+            if (count >= 4) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //check if a card can be discarded
     public Card findCardToDiscardCard() {
         for (int card = 0; card < currentHand.size(); card++) {
@@ -71,6 +96,34 @@ public class Player {
         Card drawnCard = sourceDeck.removeCard();
         receiveCard(drawnCard);
     }
+
+    
+    @Override 
+    public void run() {
+        if (hasWinningHand()) {
+            if (gameIsOver.compareAndSet(false, true)) {
+                System.out.println("Player" + playerNumber + "wins!");
+            } 
+            return;
+        } 
+        while (!gameIsOver.get()) {
+            drawCard(sourceDeck);
+
+            if (fourCardsMatch()) {
+                if (gameIsOver.compareAndSet(false, true)) {
+                    System.out.println("Player" + playerNumber + "wins!");
+                } 
+                return;
+            } 
+        
+            discardCard(destinationDeck);
+        }
+    }
+    }
+
+    
+
+
 
     
 }
