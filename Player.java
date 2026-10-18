@@ -111,7 +111,7 @@ public class Player implements Runnable {
     private String handToString() {
         StringBuilder s = new StringBuilder();
         for (Card c : currentHand) {
-            s.append(c.getValue()).append(" "));
+            s.append(c.getValue()).append(" ");
         }
         return s.toString().trim();
     }
