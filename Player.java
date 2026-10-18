@@ -105,14 +105,13 @@ public class Player implements Runnable {
         if (writer != null) {
             writer.println(message);
             writer.checkError();
-            writer.flush();
         }
     }
 
     private String handToString() {
         StringBuilder s = new StringBuilder();
         for (Card c : currentHand) {
-            s.append(c.getValue().append(" "));
+            s.append(c.getValue()).append(" "));
         }
         return s.toString().trim();
     }
@@ -132,10 +131,10 @@ public class Player implements Runnable {
             if (hasWinningHand()) {
                 if (gameIsOver.compareAndSet(false, true)) {
                     System.out.println("Player" + playerNumber + "wins!");
+                    log("player " + playerNumber + " wins");
+                    log("player " + playerNumber + " exits");
+                    log("player " + playerNumber + " final hand" + handToString());
                 } 
-                log("player " + playerNumber + " wins");
-                log("player " + playerNumber + " exits");
-                log("player " + playerNumber + " final hand" + handToString());
                 return;
             } 
             while (!gameIsOver.get()) {
@@ -145,8 +144,8 @@ public class Player implements Runnable {
                 if (fourCardsMatch()) {
                     if (gameIsOver.compareAndSet(false, true)) {
                         System.out.println("Player" + playerNumber + "wins!");
+                        log("player " + playerNumber + " wins");
                     } 
-                    log("player " + playerNumber + " wins");
                     break;
                 } 
                 Card discarded = discardCard(destinationDeck);
