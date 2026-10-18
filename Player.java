@@ -1,13 +1,15 @@
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
-public class Player {
-    
-    public class Player implements Runnable {
+public class Player implements Runnable {
     final private int playerNumber;
     private CardDeck sourceDeck;
     private CardDeck destinationDeck;
     final private AtomicBoolean gameIsOver;
+    private PrintWriter writer;
 
     //initiates an empty array list using the Card objects, later used to store a player's hand
     private final ArrayList<Card> currentHand = new ArrayList<Card>(); //private final to ensure the hand is unchanged throughout the game
@@ -18,7 +20,7 @@ public class Player {
         this.playerNumber = playerNumber;
         this.sourceDeck = sourceDeck;
         this.destinationDeck = destinationDeck;
-        this.gameisOver = gameIsOver;
+        this.gameIsOver = gameIsOver;
     }
 
     //retrieves the private player number when required during the game is executed
@@ -57,7 +59,7 @@ public class Player {
     public boolean fourCardsMatch() {
         for (int card = 0; card < currentHand.size(); card++) {
             int value = currentHand.get(card).getValue();
-            int count = 0
+            int count = 0;
 
             for (int i = 0; i <currentHand.size(); i++) {
                 if (currentHand.get(i).getValue() == value) {
@@ -83,42 +85,82 @@ public class Player {
 
     
     //checks if there is a card to discard. If there is, ensures that card can be discarded
-    public void discardCard(CardDeck destinationDeck) {
+    public Card discardCard(CardDeck destinationDeck) {
         Card discardingCard = findCardToDiscardCard();
         if (discardingCard != null) {
             currentHand.remove(discardingCard); //if a card is to be discarded, it will be removed from the current hand
             destinationDeck.addCard(discardingCard); //this card is then added to a deck
         }
+        return discardingCard;
     }
 
     //draws a card from a source deck, removing the first card from the top, and adds it onto the hand/ current hand
-    public void drawCard(CardDeck sourceDeck) {
+    public Card drawCard(CardDeck sourceDeck) {
         Card drawnCard = sourceDeck.removeCard();
         receiveCard(drawnCard);
+        return drawnCard;
+    }
+
+    private void log(String message) {
+        if (writer != null) {
+            writer.println(message);
+            writer.checkError();
+            writer.flush();
+        }
+    }
+
+    private String handToString() {
+        StringBuilder s = new StringBuilder();
+        for (Card c : currentHand) {
+            s.append(c.getValue().append(" "));
+        }
+        return s.toString().trim();
     }
 
     
     @Override 
     public void run() {
-        if (hasWinningHand()) {
-            if (gameIsOver.compareAndSet(false, true)) {
-                System.out.println("Player" + playerNumber + "wins!");
-            } 
+        try {
+            writer = new PrintWriter(new FileWriter("player" + playerNumber + "_output.txt"));
+        } catch (IOException e) {
+            System.out.println("Error, the file could not be created for player" + playerNumber);
             return;
-        } 
-        while (!gameIsOver.get()) {
-            drawCard(sourceDeck);
+        }
 
-            if (fourCardsMatch()) {
+        try {
+            log("player " + playerNumber + " initial hand " + handToString());
+            if (hasWinningHand()) {
                 if (gameIsOver.compareAndSet(false, true)) {
                     System.out.println("Player" + playerNumber + "wins!");
                 } 
+                log("player " + playerNumber + " wins");
+                log("player " + playerNumber + " exits");
+                log("player " + playerNumber + " final hand" + handToString());
                 return;
             } 
-        
-            discardCard(destinationDeck);
+            while (!gameIsOver.get()) {
+                Card drawn = drawCard(sourceDeck);
+                log("player " + playerNumber + " draws a " + drawn.getValue());
+    
+                if (fourCardsMatch()) {
+                    if (gameIsOver.compareAndSet(false, true)) {
+                        System.out.println("Player" + playerNumber + "wins!");
+                    } 
+                    log("player " + playerNumber + " wins");
+                    break;
+                } 
+                Card discarded = discardCard(destinationDeck);
+                if (discarded != null) {
+                    log("player " + playerNumber + " discards a " + discarded.getValue());
+                } 
+                log("player " + playerNumber + " current hand " + handToString());
+                
+            }
+            log("player " + playerNumber + " exits");
+            log("player " + playerNumber + " final hand " + handToString());
+        } finally {
+            writer.close();
         }
-    }
     }
 
     
