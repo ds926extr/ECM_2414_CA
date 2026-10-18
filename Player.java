@@ -74,7 +74,7 @@ public class Player implements Runnable {
     }
 
     //check if a card can be discarded
-    public Card findCardToDiscardCard() {
+    public Card findCardToDiscard() {
         for (int card = 0; card < currentHand.size(); card++) {
             if (currentHand.get(card).getValue() != playerNumber) {
                 System.out.println("This card is eligible to discard");
@@ -86,7 +86,7 @@ public class Player implements Runnable {
     
     //checks if there is a card to discard. If there is, ensures that card can be discarded
     public Card discardCard(CardDeck destinationDeck) {
-        Card discardingCard = findCardToDiscardCard();
+        Card discardingCard = findCardToDiscard();
         if (discardingCard != null) {
             currentHand.remove(discardingCard); //if a card is to be discarded, it will be removed from the current hand
             destinationDeck.addCard(discardingCard); //this card is then added to a deck
