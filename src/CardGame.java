@@ -36,6 +36,23 @@ public class CardGame {
             return false;
         }
     }
+
+     public static int dealInitialHands(ArrayList<Card> cards, ArrayList<Player> players){
+        int cardIndex = 0;
+
+        for (int round = 0; round < 4; round++) {
+            for (int i = 0; i < players.size(); i++) {
+                Card card = cards.get(cardIndex);
+
+                Player player = players.get(i);
+
+                player.receiveCard(card);
+
+                cardIndex++;
+            }
+        }
+        return cardIndex;
+    }
     
     public static void main(String[] args) {
         ArrayList<Card> cards;
@@ -151,21 +168,10 @@ public class CardGame {
             players.add(player);
         }
 
-        //hands out 4 cards to each player
-        int cardIndex = 0;
+        //hands out 4 cards to each player using dealInitialHands method
+        int cardIndex = dealInitialHands(cards, players);
 
-        for (int round = 0; round < 4; round++) {
-            for (int i = 0; i < players.size(); i++) {
-                Card card = cards.get(cardIndex);
-
-                Player player = players.get(i);
-
-                player.receiveCard(card);
-
-                cardIndex++;
-            }
-        }
-
+       
         //puts the rest of the cards in decks
         while (cardIndex < cards.size()) {
             for (int i = 0; i < decks.size() && cardIndex < cards.size(); i++) {
