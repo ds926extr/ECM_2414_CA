@@ -53,6 +53,23 @@ public class CardGame {
         }
         return cardIndex;
     }
+
+    public static int dealRemainingCards(ArrayList<Card> cards, ArrayList<CardDeck> decks, int cardIndex){
+        //puts the rest of the cards in decks
+        while (cardIndex < cards.size()) {
+            for (int i = 0; i < decks.size() && cardIndex < cards.size(); i++) {
+                Card card = cards.get(cardIndex);
+
+                CardDeck deck = decks.get(i);
+
+                deck.addCard(card);
+
+                cardIndex++;
+            }
+        }
+        return cardIndex;
+        
+    }
     
     public static void main(String[] args) {
         ArrayList<Card> cards;
@@ -173,17 +190,7 @@ public class CardGame {
 
        
         //puts the rest of the cards in decks
-        while (cardIndex < cards.size()) {
-            for (int i = 0; i < decks.size() && cardIndex < cards.size(); i++) {
-                Card card = cards.get(cardIndex);
-
-                CardDeck deck = decks.get(i);
-
-                deck.addCard(card);
-
-                cardIndex++;
-            }
-        }
+        cardIndex = dealRemainingCards(cards, decks, cardIndex);
 
         //starts threads
         ArrayList<Thread> threads = new ArrayList<>();
