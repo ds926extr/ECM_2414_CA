@@ -5,6 +5,38 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CardGame {
+    public static boolean isValidPack(File file, int numberOfPlayers){
+        int count = 0;
+        boolean packValid = true;
+
+        try{
+            Scanner fileScanner = new Scanner(file);
+
+            while (fileScanner.hasNextLine()){
+                String line = fileScanner.nextLine().trim();
+
+                try{
+                    int value = Integer.parseInt(line);
+
+                        if (value < 0) {
+                            System.out.println("Content of file is invalid. Must be a non negative integer");
+                            packValid = false;
+                        } else {
+                            count++;
+
+                        }
+                }catch (NumberFormatException e){
+                    packValid = false;
+                }
+                
+            }
+            fileScanner.close();
+            return packValid && count == 8 * numberOfPlayers;
+        }catch (FileNotFoundException e){
+            return false;
+        }
+    }
+    
     public static void main(String[] args) {
         ArrayList<Card> cards;
         Scanner myObj = new Scanner(System.in);
