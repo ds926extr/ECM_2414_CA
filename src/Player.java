@@ -33,6 +33,16 @@ public class Player implements Runnable {
         currentHand.add(card);
     }
 
+     //gets number of cards in a players hand
+    public int getHandSize(){
+        return currentHand.size();
+    }
+
+    //reads the card values that are in the hand
+    public int getCardValue(int index){
+        return currentHand.get(index).getValue();
+    }
+
     //checks if the player has a full hand
     public boolean hasFullHand() {
         if (currentHand.size() == 4) {
