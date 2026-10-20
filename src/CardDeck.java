@@ -1,3 +1,4 @@
+package src;
 import java.util.ArrayDeque;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -20,9 +21,14 @@ public class CardDeck {
         return deckNumber;
     }
 
+    //checks if a deck is empty
     public synchronized boolean isEmpty(){
         return cards.isEmpty();
     }
+
+    //checks the number of cards in a deck
+    public synchronized int size(){
+        return cards.size();
 
     //adds card to the back of the queue
     public synchronized void addCard(Card card){
@@ -33,6 +39,7 @@ public class CardDeck {
     public synchronized Card removeCard(){
         return cards.removeFirst();
     }
+        
     //prints the cards in a deck
     public synchronized void printDeck(){
         for (Card card: cards){
@@ -40,6 +47,7 @@ public class CardDeck {
          }
     }
 
+    //writes the output files   
     public synchronized void writeOutput(){
     String fileName = "deck" + deckNumber + "_output.txt";
 
