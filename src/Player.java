@@ -1,3 +1,4 @@
+package src;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.PrintWriter;
@@ -33,12 +34,12 @@ public class Player implements Runnable {
         currentHand.add(card);
     }
 
-     //gets number of cards in a players hand
+    //gets number of cards in a players hand
     public int getHandSize(){
         return currentHand.size();
     }
 
-    //reads the card values that are in the hand
+    //read the card values that are in the hand
     public int getCardValue(int index){
         return currentHand.get(index).getValue();
     }
@@ -62,7 +63,6 @@ public class Player implements Runnable {
 
         for (int card = 1; card < currentHand.size(); card++) {
             if (currentHand.get(card).getValue() != currentHand.get(0).getValue()) {
-                System.out.println("The cards have different values");
                 return false; //iterates through the 3, 4 and 5 card to check if its the same as the first card
             }
         }
@@ -74,7 +74,6 @@ public class Player implements Runnable {
     public Card findCardToDiscard() {
         for (int card = 0; card < currentHand.size(); card++) {
             if (currentHand.get(card).getValue() != playerNumber) {
-                System.out.println("This card is eligible to discard");
                 return currentHand.get(card); //iterates from the first card and checks to see if they match with the player's number
             }
         }
@@ -107,6 +106,58 @@ public class Player implements Runnable {
         return drawnCard;
     }
 
+    public boolean performTurn(){
+        CardDeck firstLock;
+        CardDeck secondLock;
+
+        //orders the two deck locks by deck number to prevent deadlock
+        if (sourceDeck.getDeckNumber() < destinationDeck.getDeckNumber()) {
+            firstLock = sourceDeck;
+            secondLock = destinationDeck;
+        } else {
+            firstLock = destinationDeck;
+            secondLock = sourceDeck;
+        }
+
+        //locks both decks so drawing and discarding is one atomic turn
+        synchronized (firstLock) {
+            synchronized (secondLock) {
+
+            //checks if another player won while this thread was waiting for the locks
+            if (gameIsOver.get()) {
+                return false;
+            }
+
+            //checks if deck is empty
+            if (sourceDeck.isEmpty()){
+                return false;
+            }
+            //draws card from deck and adds it to the hand
+            Card drawn = drawCard(sourceDeck);
+            log("player " + playerNumber + " draws a " + drawn.getValue() + " from deck " + sourceDeck.getDeckNumber());
+
+            //discards a selected card to the destination deck
+            Card discarded = discardCard(destinationDeck);
+
+            if (discarded != null) {
+                log("player " + playerNumber + " discards a " + discarded.getValue() + "to deck " + destinationDeck.getDeckNumber());
+            }
+
+            log("player" + playerNumber + " current hand " + handToString());
+
+            //checks for winning hand once player has 4 cards in its hand
+            if (hasWinningHand()) {
+                if (gameIsOver.compareAndSet(false, true)) {
+                    System.out.println("Player" + playerNumber + "wins!");
+                    log("player" + playerNumber + " wins");
+                } 
+            } 
+        return true;
+     }
+ }
+
+}
+    //writes a message to the players out file if the writer has been created
     private void log(String message) {
         if (writer != null) {
             writer.println(message);
@@ -114,9 +165,11 @@ public class Player implements Runnable {
         }
     }
 
+    //converts the player's hand into a string of card values
     private String handToString() {
         StringBuilder s = new StringBuilder();
 
+        //adds each card value to the string
         for (Card c : currentHand) {
             s.append(c.getValue()).append(" ");
         }
@@ -144,55 +197,8 @@ public class Player implements Runnable {
                 }
             } else {
                 while (!gameIsOver.get()) {
-                    CardDeck firstLock;
-                    CardDeck secondLock;
-
-                    //orders the two deck locks by deck number to prevent deadlock
-                    if (sourceDeck.getDeckNumber() < destinationDeck.getDeckNumber()) {
-                        firstLock = sourceDeck;
-                        secondLock = destinationDeck;
-                    } else {
-                        firstLock = destinationDeck;
-                        secondLock = sourceDeck;
-                    }
-
-                    //locks both decks so drawing and discarding is one atomic turn
-                    synchronized (firstLock) {
-                        synchronized (secondLock) {
-
-                            //checks if another player won while this thread was waiting for the locks
-                            if (gameIsOver.get()) {
-                                break;
-                            }
-
-                            //checks if deck is empty
-                            if (sourceDeck.isEmpty()){
-                                continue;
-                            }
-                            //draws card from deck and adds it to the hand
-                            Card drawn = drawCard(sourceDeck);
-                            log("player " + playerNumber + " draws a " + drawn.getValue());
-
-                            //discards a selected card to the destination deck
-                            Card discarded = discardCard(destinationDeck);
-
-                            if (discarded != null) {
-                                log("player " + playerNumber + " discards a " + discarded.getValue());
-                            }
-
-                            log("player" + playerNumber + " current hand " + handToString());
-
-                            //checks for winning hand once player has 4 cards in its hand
-                            if (hasWinningHand()) {
-                                if (gameIsOver.compareAndSet(false, true)) {
-                                    System.out.println("Player" + playerNumber + "wins!");
-                                    log("player" + playerNumber + " wins");
-                                } 
-                                break;
-                            } 
-
-                        }
-                    }
+                    performTurn();
+                    
                 }
             }
 
