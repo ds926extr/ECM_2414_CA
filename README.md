@@ -189,5 +189,5 @@ You must use `4` players and use `pack4.txt` for the pack filename.
 
 ## Requirements
 
-- Java
+- Java 17
 - JUnit 5 for running tests
