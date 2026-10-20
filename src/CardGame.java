@@ -1,3 +1,4 @@
+package src;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -5,6 +6,8 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CardGame {
+
+    //checks if a pack is valid
     public static boolean isValidPack(File file, int numberOfPlayers){
         int count = 0;
         boolean packValid = true;
@@ -37,7 +40,8 @@ public class CardGame {
         }
     }
 
-     public static int dealInitialHands(ArrayList<Card> cards, ArrayList<Player> players){
+    //deals the starting cards to the players
+    public static int dealInitialHands(ArrayList<Card> cards, ArrayList<Player> players){
         int cardIndex = 0;
 
         for (int round = 0; round < 4; round++) {
@@ -54,8 +58,9 @@ public class CardGame {
         return cardIndex;
     }
 
+    //deals the remaining cards after dealing cards to the players first
     public static int dealRemainingCards(ArrayList<Card> cards, ArrayList<CardDeck> decks, int cardIndex){
-        //puts the rest of the cards in decks
+        
         while (cardIndex < cards.size()) {
             for (int i = 0; i < decks.size() && cardIndex < cards.size(); i++) {
                 Card card = cards.get(cardIndex);
@@ -70,7 +75,7 @@ public class CardGame {
         return cardIndex;
         
     }
-    
+
     public static void main(String[] args) {
         ArrayList<Card> cards;
         Scanner myObj = new Scanner(System.in);
@@ -81,15 +86,16 @@ public class CardGame {
         while (true) {
             System.out.println("Enter number of players");
 
-            if (!myObj.hasNextInt()) { //checks if input is an integer
+            //checks if input is an integer
+            if (!myObj.hasNextInt()) { 
                 System.out.println("Invalid input. Please enter a positive integer");
                 myObj.next();
                 continue;
             }
 
             numberOfPlayers = myObj.nextInt();
-
-            if (numberOfPlayers <= 0) { //checks if input is a positive integer
+            //checks if input is a positive integer
+            if (numberOfPlayers <= 0) { 
                 System.out.println("Invalid input. Please enter a positive integer");
                 continue;
             }
@@ -102,62 +108,44 @@ public class CardGame {
         myObj.nextLine();
 
         while (true) {
-            //opens and validates pack file
-            System.out.println("Enter filename: ");
 
-            String fileName = myObj.nextLine();
+    System.out.println("Enter filename: ");
+    String fileName = myObj.nextLine();
 
-            ArrayList<Card> tempCards = new ArrayList<>();
+    File packFile = new File(fileName);
 
-            try { //opens file
-                File packFile = new File(fileName);
+    // use the validation method
+    if (!isValidPack(packFile, numberOfPlayers)) {
+        System.out.println("Pack is invalid. Please enter a valid pack.");
+        continue;
+    }
 
-                Scanner fileScanner = new Scanner(packFile);
+    // pack is valid, so now create the Card objects
+    ArrayList<Card> tempCards = new ArrayList<>();
 
-                int count = 0;
+    try {
+        Scanner fileScanner = new Scanner(packFile);
 
-                boolean packValid = true;
+        while (fileScanner.hasNextLine()) {
+            String line = fileScanner.nextLine().trim();
+            int value = Integer.parseInt(line);
 
-                System.out.println("File opened successfully");
-
-                while (fileScanner.hasNextLine()) {
-                    String line = fileScanner.nextLine().trim();
-
-                    try {
-                        int value = Integer.parseInt(line);
-
-                        if (value < 0) {
-                            System.out.println("Content of file is invalid. Must be a non negative integer");
-                            packValid = false;
-                        } else {
-                            count++;
-
-                            Card card = new Card(value);
-                            tempCards.add(card);
-                        }
-
-                    } catch (NumberFormatException e) {
-                        System.out.println("Content of file is invalid. Must contain one integer per line");
-                        packValid = false;
-                    }
-                }
-
-                fileScanner.close();
-
-                //validates content of pack file
-                if (packValid && count == 8 * numberOfPlayers) { //checks pack file is valid and includes 8n cards
-                    System.out.println("Pack is valid");
-                    cards = tempCards;
-                    break;
-                } else {
-                    System.out.println("Pack is invalid. Please enter a valid pack.");
-                }
-
-            } catch (FileNotFoundException e) {
-                System.out.println("File could not be found");
-            }
+            tempCards.add(new Card(value));
         }
 
+        fileScanner.close();
+
+    } catch (FileNotFoundException e) {
+        System.out.println("File could not be found");
+        continue;
+    }
+
+    cards = tempCards;
+
+    System.out.println("Pack is valid");
+    break;
+}
+        
         myObj.close();
 
         //creates n number of decks
@@ -185,22 +173,24 @@ public class CardGame {
             players.add(player);
         }
 
-        //hands out 4 cards to each player using dealInitialHands method
+        //hands out 4 cards to each player
         int cardIndex = dealInitialHands(cards, players);
 
-       
+
         //puts the rest of the cards in decks
         cardIndex = dealRemainingCards(cards, decks, cardIndex);
 
-        //starts threads
+        //creates a list to keep track of all threads
         ArrayList<Thread> threads = new ArrayList<>();
 
+        //creates and starts threads for each player
         for (Player player : players) {
             Thread thread = new Thread(player);
             threads.add(thread);
             thread.start();
         }
 
+        //waits for threads to finish before continuing
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -211,6 +201,7 @@ public class CardGame {
             }
         }
 
+        //writes the decks output files
         for (CardDeck deck : decks) {
             deck.writeOutput();
         }
