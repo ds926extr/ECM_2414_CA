@@ -185,6 +185,8 @@ Compile the Java source files and run the `CardGame` class.
 
 The program will ask for the number of players and then a pack filename.
 
+You must use `4` players and use `pack4.txt` for the pack filename.
+
 ## Requirements
 
 - Java
